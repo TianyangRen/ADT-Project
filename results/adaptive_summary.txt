@@ -1,0 +1,23 @@
+Phase 3: Adaptive Execution Evaluation Summary
+==================================================
+Dataset: sift-128-euclidean
+Queries: 500, K: 10
+
+--- Per-Profile Strategy Switching ---
+  per_profile_ultra_fast: recall=0.8640, lat=0.117ms
+  per_profile_realtime: recall=0.9840, lat=0.246ms
+  per_profile_balanced: recall=0.9980, lat=0.399ms
+  per_profile_quality: recall=1.0000, lat=27.340ms
+  per_profile_exact: recall=1.0000, lat=26.798ms
+
+--- Uniform Workload (budget=5ms, recall>=0.9) ---
+  Static-Flat: recall=0.9994, lat=26.792ms, budget_met=0.0%
+  Static-IVF(nprobe=16): recall=0.9792, lat=1.815ms, budget_met=100.0%
+  Static-HNSW(ef=64): recall=0.9776, lat=0.221ms, budget_met=100.0%
+  Adaptive: recall=0.9228, lat=0.162ms, budget_met=100.0%
+
+--- Heterogeneous Workload ---
+  Adaptive: recall=0.9628, lat=11.083ms, budget_met=93.2%
+  Static-Flat: recall=0.9994, lat=26.380ms, budget_met=41.0%
+  Static-IVF(nprobe=16): recall=0.9792, lat=1.812ms, budget_met=59.2%
+  Static-HNSW(ef=64): recall=0.9776, lat=0.210ms, budget_met=98.8%

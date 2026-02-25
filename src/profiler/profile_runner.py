@@ -6,7 +6,6 @@ This is the core of Phase 2 — it produces the profiling data that
 demonstrates the failure modes of static index selection.
 """
 
-import time
 import numpy as np
 import pandas as pd
 from typing import Dict, List

@@ -8,15 +8,15 @@ This is the main API surface of the adaptive framework.
 """
 
 import time
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from dataclasses import dataclass
+from typing import Dict, List
 import numpy as np
 
 from src.adaptive.query_analyzer import QueryAnalyzer, QueryFeatures
 from src.adaptive.strategy_selector import (
     StrategySelector, ExecutionStrategy, SelectionResult,
 )
-from src.cost_model.cost_estimator import CostModel, CostEstimate
+from src.cost_model.cost_estimator import CostModel
 from src.cost_model.cost_functions import AnalyticalCostModel
 from src.monitor.performance_monitor import PerformanceMonitor
 
@@ -86,8 +86,8 @@ class AdaptiveExecutionEngine:
         # Query analyzer
         self.analyzer = QueryAnalyzer(
             dataset_size=self.dataset_size,
-            default_latency_budget_ms=default_latency_budget_ms,
-            default_min_recall=default_min_recall,
+            dimensionality=self.dimension,
+            monitor_system_load=False,  # skip psutil for speed
         )
 
         # Performance monitor
@@ -101,7 +101,8 @@ class AdaptiveExecutionEngine:
                query: np.ndarray,
                top_k: int = 10,
                latency_budget_ms: float = None,
-               min_recall: float = None) -> SearchResult:
+               min_recall: float = None,
+               concurrency: int = 1) -> SearchResult:
         """
         Adaptive search: analyze query → estimate costs → select strategy → execute.
 
@@ -110,6 +111,7 @@ class AdaptiveExecutionEngine:
             top_k: number of neighbors to return
             latency_budget_ms: latency constraint (ms)
             min_recall: minimum acceptable recall
+            concurrency: simulated concurrent query count (affects index choice)
 
         Returns:
             SearchResult with neighbors, latency, and decision explanation
@@ -119,10 +121,11 @@ class AdaptiveExecutionEngine:
 
         # Step 1: Analyze query features
         features = self.analyzer.extract_features(
-            query=query,
+            query_vector=query,
             top_k=top_k,
             latency_budget_ms=budget,
             min_recall=recall_req,
+            concurrency=concurrency,
         )
 
         # Step 2: Estimate costs for all candidates

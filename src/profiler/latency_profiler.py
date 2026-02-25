@@ -4,7 +4,7 @@ Latency profiler: measures per-query and batch latency for any index.
 
 import time
 import numpy as np
-from typing import Dict, List
+from typing import Dict
 
 
 class LatencyProfiler:

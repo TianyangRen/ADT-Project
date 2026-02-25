@@ -6,7 +6,7 @@ This is the core decision-making component of the adaptive system.
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, List
 import numpy as np
 import pandas as pd
 import os
@@ -104,10 +104,17 @@ class CostModel:
         """
         Predict latency and recall for a given (index, params, query).
 
+        Applies concurrency-aware latency scaling:
+          - HNSW: random graph traversal suffers cache thrashing under
+            concurrent load → quadratic degradation.
+          - IVF: sequential posting-list scan is more cache-friendly
+            → linear (mild) degradation.
+          - Flat: purely sequential scan → minimal degradation.
+
         Args:
             index_name: "Flat", "IVF", or "HNSW"
             params: e.g. {"nprobe": 16} or {"ef_search": 64} or {}
-            query_features: QueryFeatures with top_k etc.
+            query_features: QueryFeatures with top_k, concurrency, etc.
 
         Returns:
             CostEstimate with predicted latency and recall
@@ -132,6 +139,11 @@ class CostModel:
             est_latency = 100.0
             est_recall = 0.5
 
+        # --- Concurrency-aware latency scaling ---
+        conc = getattr(query_features, "concurrency", 1)
+        if conc > 1:
+            est_latency *= self._concurrency_multiplier(index_name, conc)
+
         # Clamp to valid ranges
         est_latency = max(est_latency, 0.001)
         est_recall = np.clip(est_recall, 0.0, 1.0)
@@ -143,6 +155,26 @@ class CostModel:
             estimated_recall=est_recall,
             confidence=0.8,
         )
+
+    @staticmethod
+    def _concurrency_multiplier(index_name: str, concurrency: int) -> float:
+        """
+        Compute latency multiplier under concurrent load.
+
+        HNSW: random pointer-chasing → L3 cache misses scale super-linearly.
+              Model: 1 + α · conc²   (α = 0.5)
+        IVF:  sequential posting-list scan → moderate, linear degradation.
+              Model: 1 + β · conc     (β = 0.10)
+        Flat: purely sequential scan → minimal degradation.
+              Model: 1 + γ · conc     (γ = 0.05)
+        """
+        c = concurrency - 1          # extra threads beyond the baseline
+        if index_name == "HNSW":
+            return 1.0 + 0.5 * c * c  # quadratic cache pressure
+        elif index_name == "IVF":
+            return 1.0 + 0.10 * c     # mild linear scaling
+        else:  # Flat
+            return 1.0 + 0.05 * c     # near-constant
 
     def estimate_all(self, candidates: list, query_features) -> List[CostEstimate]:
         """Estimate costs for all candidate strategies."""

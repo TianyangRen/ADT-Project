@@ -23,6 +23,7 @@ class QueryFeatures:
     latency_budget_ms: Optional[float] = None   # user-specified max latency
     min_recall: Optional[float] = None           # user-specified min recall
     system_cpu_percent: float = 0.0              # current system load
+    concurrency: int = 1                         # simulated concurrent query count
 
     def to_dict(self) -> dict:
         return {
@@ -33,6 +34,7 @@ class QueryFeatures:
             "latency_budget_ms": self.latency_budget_ms,
             "min_recall": self.min_recall,
             "system_cpu_percent": self.system_cpu_percent,
+            "concurrency": self.concurrency,
         }
 
 
@@ -57,7 +59,8 @@ class QueryAnalyzer:
 
     def extract_features(self, query_vector: np.ndarray, top_k: int,
                          latency_budget_ms: float = None,
-                         min_recall: float = None) -> QueryFeatures:
+                         min_recall: float = None,
+                         concurrency: int = 1) -> QueryFeatures:
         """
         Extract features from a single query.
 
@@ -66,6 +69,7 @@ class QueryAnalyzer:
             top_k: number of neighbors requested
             latency_budget_ms: optional latency constraint in ms
             min_recall: optional minimum recall requirement [0, 1]
+            concurrency: number of concurrent queries (affects cache contention)
 
         Returns:
             QueryFeatures dataclass
@@ -89,4 +93,5 @@ class QueryAnalyzer:
             latency_budget_ms=latency_budget_ms,
             min_recall=min_recall,
             system_cpu_percent=cpu_pct,
+            concurrency=concurrency,
         )

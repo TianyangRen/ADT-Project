@@ -9,11 +9,8 @@ index-specific complexity analysis. Useful as:
 """
 
 import math
-import numpy as np
-from dataclasses import dataclass
-from typing import Dict
 
-from src.cost_model.cost_estimator import CostEstimate
+from src.cost_model.cost_estimator import CostEstimate, CostModel
 
 
 class AnalyticalCostModel:
@@ -31,7 +28,7 @@ class AnalyticalCostModel:
 
     def estimate(self, index_name: str, params: dict,
                  query_features) -> CostEstimate:
-        """Estimate cost using analytical formulas."""
+        """Estimate cost using analytical formulas with concurrency scaling."""
         k = query_features.top_k
 
         if index_name == "Flat":
@@ -47,6 +44,11 @@ class AnalyticalCostModel:
             rec = self._hnsw_recall(k, ef_search)
         else:
             lat, rec = 100.0, 0.5
+
+        # Concurrency-aware latency scaling (same model as CostModel)
+        conc = getattr(query_features, "concurrency", 1)
+        if conc > 1:
+            lat *= CostModel._concurrency_multiplier(index_name, conc)
 
         return CostEstimate(
             index_name=index_name,
