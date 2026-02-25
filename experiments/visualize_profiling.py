@@ -260,10 +260,10 @@ def plot_recall_vs_k(df: pd.DataFrame):
     """
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    # Pick representative static configs
+    # Pick representative static configs (low / mid / high for each index)
     configs = [
-        ("IVF", "nprobe", 8),
-        ("IVF", "nprobe", 32),
+        ("IVF", "nprobe", 4),
+        ("IVF", "nprobe", 16),
         ("IVF", "nprobe", 128),
         ("HNSW", "ef_search", 32),
         ("HNSW", "ef_search", 128),
