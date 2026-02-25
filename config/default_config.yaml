@@ -38,12 +38,12 @@ indexes:
 
 # --- Profiling Sweep Settings (Phase 2) ---
 profiling:
-  k_values: [1, 10, 50, 100]
-  ivf_nprobe_values: [1, 2, 4, 8, 16, 32, 64, 128, 256]
-  hnsw_ef_search_values: [16, 32, 64, 128, 256, 512]
-  num_queries: 10000          # number of queries to use (0 = all)
-  warmup_queries: 100         # queries to run before timing
-  repeat: 3                   # repeat each measurement for stability
+  k_values: [1, 10]
+  ivf_nprobe_values: [1, 4, 16, 64]
+  hnsw_ef_search_values: [16, 64, 256]
+  num_queries: 500            # small for quick test run
+  warmup_queries: 20
+  repeat: 1                   # single run for quick test
 
 # --- Output Settings ---
 output:

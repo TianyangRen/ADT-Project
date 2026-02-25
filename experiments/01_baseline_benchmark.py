@@ -31,38 +31,39 @@ from src.utils.metrics import compute_recall, compute_latency_stats, compute_qps
 from src.utils.io_utils import load_dataset, load_config, ensure_dir, save_results_csv
 
 
-def benchmark_single(index, queries, ground_truth, k, warmup=50, **search_params):
+def benchmark_single(index, queries, ground_truth, k, warmup=50,
+                     per_query_limit=1000, **search_params):
     """
     Benchmark a single index configuration.
 
     Returns dict with recall, latency stats, and QPS.
+    per_query_limit: max number of queries for per-query latency measurement.
+                     Set lower for slow indexes (e.g. Flat).
     """
     nq = queries.shape[0]
 
     # Warmup: run a few queries to stabilize caches
     if warmup > 0:
-        index.search(queries[:warmup], k, **search_params)
+        index.search(queries[:min(warmup, nq)], k, **search_params)
 
-    # Timed run: measure per-query latency
+    # Per-query latency measurement (on a subset to keep runtime reasonable)
+    n_per_query = min(nq, per_query_limit)
     latencies = []
-    all_indices = []
-    for i in range(nq):
+    for i in range(n_per_query):
         q = queries[i:i+1]
         start = time.perf_counter()
-        _, idx = index.search(q, k, **search_params)
+        index.search(q, k, **search_params)
         elapsed = time.perf_counter() - start
         latencies.append(elapsed * 1000)  # ms
-        all_indices.append(idx[0])
 
     latencies = np.array(latencies)
-    all_indices = np.array(all_indices)
 
-    # Also measure batch throughput
+    # Batch throughput measurement
     batch_start = time.perf_counter()
     _, batch_indices = index.search(queries, k, **search_params)
     batch_time = time.perf_counter() - batch_start
 
-    # Compute recall using batch results (more stable)
+    # Compute recall using batch results
     gt_k = ground_truth[:, :k]
     recall = compute_recall(batch_indices, gt_k, k)
     lat_stats = compute_latency_stats(latencies)
@@ -117,9 +118,9 @@ def run_baseline_benchmark(dataset_name="sift-128-euclidean", data_dir="data"):
     results = []
 
     indexes_to_test = [
-        ("Flat", flat, {}),
-        ("IVF", ivf, {"nprobe": ivf_nprobe}),
-        ("HNSW", hnsw, {"ef_search": hnsw_ef_search}),
+        ("Flat", flat, {}, 200),       # Flat is slow, limit per-query measurement
+        ("IVF", ivf, {"nprobe": ivf_nprobe}, 1000),
+        ("HNSW", hnsw, {"ef_search": hnsw_ef_search}, 1000),
     ]
 
     for k in k_values:
@@ -127,12 +128,13 @@ def run_baseline_benchmark(dataset_name="sift-128-euclidean", data_dir="data"):
         print(f"Benchmarking at K={k}")
         print(f"{'=' * 70}")
 
-        for idx_name, idx_obj, search_params in indexes_to_test:
+        for idx_name, idx_obj, search_params, pq_limit in indexes_to_test:
             param_str = ", ".join(f"{p}={v}" for p, v in search_params.items())
             print(f"\n  [{idx_name}] params=({param_str})")
 
             stats = benchmark_single(idx_obj, queries, ground_truth, k,
-                                     warmup=100, **search_params)
+                                     warmup=100, per_query_limit=pq_limit,
+                                     **search_params)
 
             result = {
                 "dataset": dataset_name,

@@ -15,7 +15,7 @@ def ensure_dir(path: str):
 
 def load_config(config_path: str = "config/default_config.yaml") -> Dict[str, Any]:
     """Load YAML configuration file."""
-    with open(config_path, "r") as f:
+    with open(config_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
     return config
 
