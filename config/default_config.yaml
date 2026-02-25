@@ -1,0 +1,53 @@
+# =============================================================================
+# ADT-Project: Default Configuration
+# =============================================================================
+
+# --- Dataset Settings ---
+dataset:
+  name: "sift-128-euclidean"
+  data_dir: "data"
+  # Available datasets (will be downloaded from ann-benchmarks.com):
+  #   - sift-128-euclidean   (128d, 1M vectors, L2 distance)
+  #   - glove-100-angular    (100d, 1.2M vectors, cosine distance)
+  available:
+    sift-128-euclidean:
+      url: "http://ann-benchmarks.com/sift-128-euclidean.hdf5"
+      dimension: 128
+      metric: "L2"
+    glove-100-angular:
+      url: "http://ann-benchmarks.com/glove-100-angular.hdf5"
+      dimension: 100
+      metric: "IP"  # inner product (angular)
+
+# --- Index Settings ---
+indexes:
+  flat:
+    enabled: true
+    # No tunable params for Flat — it's exact brute-force
+
+  ivf:
+    enabled: true
+    nlist: 256                # number of Voronoi cells
+    default_nprobe: 16        # default probe count at search time
+
+  hnsw:
+    enabled: true
+    M: 32                     # number of connections per node
+    ef_construction: 200      # build-time quality parameter
+    default_ef_search: 64     # default search-time parameter
+
+# --- Profiling Sweep Settings (Phase 2) ---
+profiling:
+  k_values: [1, 10, 50, 100]
+  ivf_nprobe_values: [1, 2, 4, 8, 16, 32, 64, 128, 256]
+  hnsw_ef_search_values: [16, 32, 64, 128, 256, 512]
+  num_queries: 10000          # number of queries to use (0 = all)
+  warmup_queries: 100         # queries to run before timing
+  repeat: 3                   # repeat each measurement for stability
+
+# --- Output Settings ---
+output:
+  results_dir: "results"
+  figures_dir: "results/figures"
+  profiling_csv: "results/profiling_sweep.csv"
+  baseline_csv: "results/baseline_results.csv"

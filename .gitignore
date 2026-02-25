@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data files (large — do not commit)
+data/*.hdf5
+data/*.fvecs
+data/*.bvecs
+
+# Results (regenerable)
+results/*.csv
+results/*.json
+results/figures/*.png
+results/figures/*.pdf
+
+# FAISS index files (large — do not commit)
+*.index
+*.faiss
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Misc
+*.log
+
+#documentation
+IMPLEMENTATION_ROADMAP.md
+prompt.txt
