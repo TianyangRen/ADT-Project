@@ -37,21 +37,36 @@ def download_with_progress(url: str, filepath: str):
 
     start_time = time.time()
 
-    def reporthook(block_num, block_size, total_size):
-        downloaded = block_num * block_size
-        if total_size > 0:
-            percent = min(100, downloaded * 100 / total_size)
-            mb_done = downloaded / (1024 * 1024)
-            mb_total = total_size / (1024 * 1024)
-            elapsed = time.time() - start_time
-            speed = mb_done / elapsed if elapsed > 0 else 0
-            sys.stdout.write(
-                f"\r  Progress: {percent:5.1f}% ({mb_done:.1f}/{mb_total:.1f} MB) "
-                f"@ {speed:.1f} MB/s"
-            )
-            sys.stdout.flush()
+    # Use a proper User-Agent to avoid 403 from some servers
+    req = urllib.request.Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ADT-Project/1.0"
+    })
 
-    urllib.request.urlretrieve(url, filepath, reporthook=reporthook)
+    response = urllib.request.urlopen(req)
+    total_size = int(response.headers.get("Content-Length", 0))
+
+    block_size = 1024 * 1024  # 1 MB
+    downloaded = 0
+
+    with open(filepath, "wb") as f:
+        while True:
+            data = response.read(block_size)
+            if not data:
+                break
+            f.write(data)
+            downloaded += len(data)
+            if total_size > 0:
+                percent = min(100, downloaded * 100 / total_size)
+                mb_done = downloaded / (1024 * 1024)
+                mb_total = total_size / (1024 * 1024)
+                elapsed = time.time() - start_time
+                speed = mb_done / elapsed if elapsed > 0 else 0
+                sys.stdout.write(
+                    f"\r  Progress: {percent:5.1f}% ({mb_done:.1f}/{mb_total:.1f} MB) "
+                    f"@ {speed:.1f} MB/s"
+                )
+                sys.stdout.flush()
+
     elapsed = time.time() - start_time
     print(f"\n  Done in {elapsed:.1f}s\n")
 
