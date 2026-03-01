@@ -93,6 +93,8 @@ Two Mermaid source files are included for report-ready system diagrams:
   - Figure title: **Adaptive Query-Time Execution Sequence Diagram**
 - `docs/diagrams/strategy_selection_state.mmd`
   - Figure title: **Strategy Selection State Diagram**
+- `docs/diagrams/offline_online_closed_loop.mmd`
+  - Figure title: **Offline-Online Closed Loop Diagram**
 
 ### Export to SVG/PNG
 
@@ -108,6 +110,7 @@ Option B (CLI):
 npm i -g @mermaid-js/mermaid-cli
 mmdc -i docs/diagrams/adaptive_execution_sequence.mmd -o docs/diagrams/adaptive_execution_sequence.svg
 mmdc -i docs/diagrams/strategy_selection_state.mmd -o docs/diagrams/strategy_selection_state.svg
+mmdc -i docs/diagrams/offline_online_closed_loop.mmd -o docs/diagrams/offline_online_closed_loop.svg
 ```
 
 Use SVG in reports for best print quality.
@@ -180,4 +183,28 @@ flowchart TD
   M --> N{MAE > threshold?}
   N -- Yes --> R[Signal recalibration needed]
   N -- No --> S[Continue online adaptation]
+```
+
+Offline-online closed loop diagram:
+
+```mermaid
+flowchart LR
+    P1[Phase 1 Baseline Benchmark] --> B1[baseline_results.csv]
+    P2[Phase 2 Profiling Sweep] --> B2[profiling_sweep.csv]
+
+    B2 --> F1[Failure Mode Analysis]
+    B2 --> T1[Train Cost Model]
+
+    T1 --> O1[Phase 3 Online Adaptive Engine]
+    O1 --> D1[Per-query decision and execution]
+    D1 --> M1[Performance Monitor]
+
+    M1 --> C1{Prediction error above threshold?}
+    C1 -- No --> O1
+    C1 -- Yes --> R1[Trigger recalibration]
+    R1 --> N1[Collect new profiling data]
+    N1 --> T1
+
+    B1 -. baseline reference .-> O1
+    F1 -. candidate design guidance .-> O1
 ```

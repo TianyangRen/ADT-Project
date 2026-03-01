@@ -1,0 +1,19 @@
+flowchart LR
+    P1[Phase 1 Baseline Benchmark] --> B1[baseline_results.csv]
+    P2[Phase 2 Profiling Sweep] --> B2[profiling_sweep.csv]
+
+    B2 --> F1[Failure Mode Analysis]
+    B2 --> T1[Train Cost Model]
+
+    T1 --> O1[Phase 3 Online Adaptive Engine]
+    O1 --> D1[Per-query decision and execution]
+    D1 --> M1[Performance Monitor]
+
+    M1 --> C1{Prediction error above threshold?}
+    C1 -- No --> O1
+    C1 -- Yes --> R1[Trigger recalibration]
+    R1 --> N1[Collect new profiling data]
+    N1 --> T1
+
+    B1 -. baseline reference .-> O1
+    F1 -. candidate design guidance .-> O1
