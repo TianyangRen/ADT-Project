@@ -30,7 +30,7 @@ from src.indexes.hnsw_index import HNSWIndex
 from src.utils.metrics import compute_recall, compute_latency_stats, compute_qps
 from src.utils.io_utils import load_dataset, load_config, ensure_dir, save_results_csv
 
-
+# Benchmarking function for a single index configuration
 def benchmark_single(index, queries, ground_truth, k, warmup=50,
                      per_query_limit=1000, **search_params):
     """
