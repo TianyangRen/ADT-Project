@@ -93,6 +93,8 @@ def run_baseline_benchmark(dataset_name="sift-128-euclidean", data_dir="data"):
 
     # --- Load Config ---
     config = load_config()
+    dataset_metric = config["dataset"].get("available", {}).get(
+        dataset_name, {}).get("metric", "L2")
     ivf_nlist = config["indexes"]["ivf"]["nlist"]
     ivf_nprobe = config["indexes"]["ivf"]["default_nprobe"]
     hnsw_M = config["indexes"]["hnsw"]["M"]
@@ -104,13 +106,13 @@ def run_baseline_benchmark(dataset_name="sift-128-euclidean", data_dir="data"):
     print("Building indexes...")
     print("-" * 70)
 
-    flat = FlatIndex(dim, metric="L2")
+    flat = FlatIndex(dim, metric=dataset_metric)
     flat.build(base)
 
-    ivf = IVFIndex(dim, nlist=ivf_nlist, metric="L2")
+    ivf = IVFIndex(dim, nlist=ivf_nlist, metric=dataset_metric)
     ivf.build(base)
 
-    hnsw = HNSWIndex(dim, M=hnsw_M, ef_construction=hnsw_ef_con, metric="L2")
+    hnsw = HNSWIndex(dim, M=hnsw_M, ef_construction=hnsw_ef_con, metric=dataset_metric)
     hnsw.build(base)
 
     # --- Benchmark At Multiple K Values ---

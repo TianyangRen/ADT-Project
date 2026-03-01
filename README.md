@@ -58,7 +58,7 @@ python experiments/visualize_profiling.py
 python experiments/03_adaptive_evaluation.py
 ```
 
-Output: `results/adaptive_summary.txt` + `result/adaptive_evaluation.csv`
+Output: `results/adaptive_summary.txt` + `results/adaptive_evaluation.csv`
 
 ### 7. Run Phase 4 — Analyze Experiment Results
 
@@ -90,7 +90,7 @@ ADT-Project/
 │   ├── 01_baseline_benchmark.py
 │   ├── 02_profiling_analysis.py
 │   ├── 03_adaptive_evaluation.py
-│   └── 04_result_analysis.py     # Result aggregation & summary
+│   └── result_analysis.py        # Result aggregation & summary
 ├── results/                      # Output CSV and figures
 └── requirements.txt
 ```

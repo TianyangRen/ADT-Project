@@ -31,23 +31,23 @@ from src.profiler.profile_runner import ProfileRunner
 from src.utils.io_utils import load_dataset, load_config, ensure_dir, save_results_csv
 
 
-def build_indexes(base: np.ndarray, dim: int, config: dict):
+def build_indexes(base: np.ndarray, dim: int, config: dict, metric: str = "L2"):
     """Build all three index types."""
     print("=" * 70)
     print("Building indexes...")
     print("=" * 70)
 
-    flat = FlatIndex(dim, metric="L2")
+    flat = FlatIndex(dim, metric=metric)
     flat.build(base)
 
-    ivf = IVFIndex(dim, nlist=config["indexes"]["ivf"]["nlist"], metric="L2")
+    ivf = IVFIndex(dim, nlist=config["indexes"]["ivf"]["nlist"], metric=metric)
     ivf.build(base)
 
     hnsw = HNSWIndex(
         dim,
         M=config["indexes"]["hnsw"]["M"],
         ef_construction=config["indexes"]["hnsw"]["ef_construction"],
-        metric="L2",
+        metric=metric,
     )
     hnsw.build(base)
 
@@ -160,6 +160,8 @@ def run_profiling(dataset_name="sift-128-euclidean", data_dir="data"):
 
     # --- Load ---
     config = load_config()
+    dataset_metric = config["dataset"].get("available", {}).get(
+        dataset_name, {}).get("metric", "L2")
     base, queries, ground_truth, _ = load_dataset(dataset_name, data_dir)
     n, dim = base.shape
 
@@ -170,7 +172,7 @@ def run_profiling(dataset_name="sift-128-euclidean", data_dir="data"):
         ground_truth = ground_truth[:max_queries]
 
     # --- Build ---
-    indexes = build_indexes(base, dim, config)
+    indexes = build_indexes(base, dim, config, metric=dataset_metric)
 
     # --- Sweep ---
     print("\n" + "=" * 70)

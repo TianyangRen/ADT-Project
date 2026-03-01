@@ -67,20 +67,21 @@ SLA_PROFILES = {
 
 # ── Index building ────────────────────────────────────────────────────────
 
-def build_indexes(train_data, config):
+def build_indexes(train_data, config, metric="L2"):
     """Build and return all three indexes."""
     dim = train_data.shape[1]
     idx_cfg = config["indexes"]
 
     print("Building indexes ...")
-    flat = FlatIndex(dim)
+    flat = FlatIndex(dim, metric=metric)
     flat.build(train_data)
 
-    ivf = IVFIndex(dim, nlist=idx_cfg["ivf"]["nlist"])
+    ivf = IVFIndex(dim, nlist=idx_cfg["ivf"]["nlist"], metric=metric)
     ivf.build(train_data)
 
     hnsw = HNSWIndex(dim, M=idx_cfg["hnsw"]["M"],
-                     ef_construction=idx_cfg["hnsw"]["ef_construction"])
+                     ef_construction=idx_cfg["hnsw"]["ef_construction"],
+                     metric=metric)
     hnsw.build(train_data)
 
     print("  All indexes built.\n")
@@ -115,8 +116,9 @@ def evaluate_static(index, index_name, queries, ground_truth,
 def evaluate_oracle(indexes, queries, ground_truth, k,
                     candidates, latency_budget_ms, min_recall):
     """
-    Oracle: for each query, try ALL candidates and pick the one with
-    the lowest actual latency that meets the recall constraint.
+    Oracle: for each query, try ALL candidates and pick using
+    the same constraint cascade as selector, but with actual observed
+    latency/recall instead of predictions.
     """
     nq = queries.shape[0]
     oracle_latencies = []
@@ -125,13 +127,11 @@ def evaluate_oracle(indexes, queries, ground_truth, k,
 
     for i in range(nq):
         q = queries[i:i + 1]
-        gt = ground_truth[i:k]
-
-        best_lat = float("inf")
-        best_choice = None
-        best_I = None
+        measured = []
 
         for c in candidates:
+            if c.index_name not in indexes:
+                continue
             idx = indexes[c.index_name]
             kwargs = dict(c.params)
             if "ef_search" in kwargs:
@@ -143,29 +143,21 @@ def evaluate_oracle(indexes, queries, ground_truth, k,
 
             rec_val = compute_recall(I, ground_truth[i:i+1, :k], k)
 
-            if rec_val >= min_recall and lat < best_lat:
-                best_lat = lat
-                best_choice = c
-                best_I = I[0]
+            measured.append((c, lat, rec_val, I[0]))
 
-        # If nothing meets constraints, pick best recall
-        if best_choice is None:
-            best_lat = float("inf")
-            for c in candidates:
-                idx = indexes[c.index_name]
-                kwargs = dict(c.params)
-                if "ef_search" in kwargs:
-                    kwargs["ef_search"] = max(kwargs["ef_search"], k)
-                t0 = time.perf_counter()
-                D, I = idx.search(q, k, **kwargs)
-                lat = (time.perf_counter() - t0) * 1000.0
-                rec_val = compute_recall(I, ground_truth[i:i+1, :k], k)
-                if best_choice is None or rec_val > compute_recall(
-                        best_I.reshape(1, -1) if best_I is not None else I,
-                        ground_truth[i:i+1, :k], k):
-                    best_lat = lat
-                    best_choice = c
-                    best_I = I[0]
+        # Constraint cascade on ACTUAL measurements
+        fully_ok = [m for m in measured if m[2] >= min_recall and m[1] <= latency_budget_ms]
+        recall_ok = [m for m in measured if m[2] >= min_recall]
+        latency_ok = [m for m in measured if m[1] <= latency_budget_ms]
+
+        if fully_ok:
+            best_choice, best_lat, _, best_I = min(fully_ok, key=lambda x: x[1])
+        elif recall_ok:
+            best_choice, best_lat, _, best_I = min(recall_ok, key=lambda x: x[1])
+        elif latency_ok:
+            best_choice, best_lat, _, best_I = max(latency_ok, key=lambda x: x[2])
+        else:
+            best_choice, best_lat, _, best_I = max(measured, key=lambda x: x[2])
 
         oracle_latencies.append(best_lat)
         rec = compute_recall(best_I.reshape(1, -1), ground_truth[i:i+1, :k], k)
@@ -286,6 +278,8 @@ def main():
 
     config = load_config(args.config)
     dataset_name = args.dataset or config["dataset"]["name"]
+    dataset_metric = config["dataset"].get("available", {}).get(
+        dataset_name, {}).get("metric", "L2")
     dataset_dir = config["dataset"].get("data_dir", "data")
 
     # Load data
@@ -301,7 +295,7 @@ def main():
     print(f"  train={train.shape}, queries={queries.shape}, k={k}\n")
 
     # Build indexes
-    indexes = build_indexes(train, config)
+    indexes = build_indexes(train, config, metric=dataset_metric)
 
     # ── Train cost model from Phase 2 profiling data ──
     profiling_path = "results/profiling_sweep.csv"

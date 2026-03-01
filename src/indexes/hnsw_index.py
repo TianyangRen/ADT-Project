@@ -27,14 +27,15 @@ class HNSWIndex(BaseIndex):
             dimension: vector dimensionality
             M: number of bi-directional links per node (graph connectivity)
             ef_construction: build-time search width (quality vs build speed)
-            metric: "L2" for Euclidean (HNSW in FAISS only supports L2 well)
+            metric: "L2" for Euclidean, "IP" for inner product
         """
         super().__init__(name="HNSW", dimension=dimension)
         self.metric = metric
         self.M = M
         self.ef_construction = ef_construction
 
-        self.index = faiss.IndexHNSWFlat(dimension, M)
+        metric_type = faiss.METRIC_L2 if metric == "L2" else faiss.METRIC_INNER_PRODUCT
+        self.index = faiss.IndexHNSWFlat(dimension, M, metric_type)
         self.index.hnsw.efConstruction = ef_construction
 
     def build(self, data: np.ndarray) -> None:
