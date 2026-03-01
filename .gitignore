@@ -10,6 +10,7 @@ build/
 # Virtual environment
 venv/
 .venv/
+.venv-*/
 env/
 
 # IDE

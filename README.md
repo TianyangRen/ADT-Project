@@ -9,13 +9,20 @@
 ```bash
 # Create virtual environment
 python -m venv venv
+# If used python3
+python3 -m venv venv
 
 # Activate (Windows)
 venv\Scripts\activate
 
+# Activate (Mac/Linux)
+source .venv/bin/activate
+
 # Install dependencies
 pip install -r requirements.txt
 ```
+
+After activation, use `python` for all commands below.
 
 ### 2. Download Dataset (~500MB)
 
@@ -60,6 +67,14 @@ python experiments/result_analysis.py
 ```
 
 Output: `results/analysis_summary.txt` + `results/analysis_tables.csv`
+
+### 8. Exit python virtual environment
+
+Enter the following directly in the terminal:
+
+```bash
+deactivate
+```
 
 ## Project Structure
 
