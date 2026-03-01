@@ -23,3 +23,8 @@ tqdm>=4.65
 # Jupyter support (optional, for notebooks)
 jupyter>=1.0
 ipykernel>=6.25
+
+#tensorboard
+# TensorBoard (for Phase 1 & 2 visualization)
+torch>=2.0
+tensorboard>=2.14
