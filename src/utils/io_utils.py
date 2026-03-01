@@ -35,7 +35,13 @@ def load_dataset(dataset_name: str, data_dir: str = "data") -> Tuple[np.ndarray,
         - ground_truth_neighbors: (nq, gt_k) int64 — true neighbor indices
         - ground_truth_distances: (nq, gt_k) float32 — true neighbor distances
     """
-    import h5py
+    try:
+        import h5py
+    except ImportError:
+        raise ImportError(
+            "The 'h5py' library is required to load datasets. "
+            "Please install it with: pip install h5py"
+        )
 
     filepath = os.path.join(data_dir, f"{dataset_name}.hdf5")
     if not os.path.exists(filepath):
