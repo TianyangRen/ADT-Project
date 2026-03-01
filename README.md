@@ -37,6 +37,17 @@ Output: `results/profiling_sweep.csv` + `results/figures/*.png`
 ```bash
 python experiments/visualize_profiling.py
 ```
+### 6. Run Phase 3 — Adaptive Evaluation
+```bash
+python experiments/03_adaptive_evaluation.py
+```
+Output: `results/adaptive_summary.txt` + `result/adaptive_evaluation.csv`
+
+### 7. Run Phase 4 — Analyze Experiment Results
+```bash
+python experiments/result_analysis.py
+```
+Output: `results/analysis_summary.txt` + `results/analysis_tables.csv`
 
 ## Project Structure
 ```
@@ -48,6 +59,10 @@ ADT-Project/
 │   ├── profiler/                 # Latency & recall profiling
 │   └── utils/                    # Metrics, I/O helpers
 ├── experiments/                  # Runnable scripts for each phase
+│   ├── 01_baseline_benchmark.py
+│   ├── 02_profiling_analysis.py
+│   ├── 03_adaptive_evaluation.py
+│   └── 04_result_analysis.py     # Result aggregation & summary
 ├── results/                      # Output CSV and figures
 └── requirements.txt
 ```
