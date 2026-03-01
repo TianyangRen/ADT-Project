@@ -97,6 +97,12 @@ class AdaptiveExecutionEngine:
         self.default_latency_budget_ms = default_latency_budget_ms
         self.default_min_recall = default_min_recall
 
+    def __repr__(self):
+        return (f"<AdaptiveExecutionEngine "
+                f"indexes={list(self.indexes.keys())}, "
+                f"dataset_size={self.dataset_size}, "
+                f"dimension={self.dimension}>")
+
     def search(self,
                query: np.ndarray,
                top_k: int = 10,
@@ -116,6 +122,11 @@ class AdaptiveExecutionEngine:
         Returns:
             SearchResult with neighbors, latency, and decision explanation
         """
+        if query.ndim != 1:
+            raise ValueError(f"Query must be 1-D array, got shape {query.shape}")
+        if query.shape[0] != self.dimension:
+            raise ValueError(f"Query dimension {query.shape[0]} does not match index dimension {self.dimension}")
+
         budget = latency_budget_ms or self.default_latency_budget_ms
         recall_req = min_recall or self.default_min_recall
 
