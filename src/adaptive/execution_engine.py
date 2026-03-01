@@ -143,6 +143,9 @@ class AdaptiveExecutionEngine:
         strategy = selection.chosen_strategy
 
         # Step 4: Execute search on the selected index
+        if strategy.index_name not in self.indexes:
+            raise RuntimeError(f"Selected strategy '{strategy.index_name}' not available in indexes: {list(self.indexes.keys())}")
+
         index_obj = self.indexes[strategy.index_name]
 
         # Build search kwargs from strategy params
@@ -150,9 +153,13 @@ class AdaptiveExecutionEngine:
         if "ef_search" in search_kwargs:
             search_kwargs["ef_search"] = max(search_kwargs["ef_search"], top_k)
 
-        t0 = time.perf_counter()
-        D, I = index_obj.search(query.reshape(1, -1), top_k, **search_kwargs)
-        elapsed_ms = (time.perf_counter() - t0) * 1000.0
+        try:
+            t0 = time.perf_counter()
+            D, I = index_obj.search(query.reshape(1, -1), top_k, **search_kwargs)
+            elapsed_ms = (time.perf_counter() - t0) * 1000.0
+        except Exception as e:
+            # Log error and re-raise or fallback? For now, re-raise with context
+            raise RuntimeError(f"Search failed on index '{strategy.index_name}' with params {search_kwargs}: {e}") from e
 
         # Step 5: Record in monitor
         self.monitor.record(
