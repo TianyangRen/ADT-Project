@@ -155,3 +155,29 @@ sequenceDiagram
 
   Engine-->>Client: SearchResult(indices, distances, latency, strategy, explanation)
 ```
+
+Strategy selection state diagram:
+
+```mermaid
+flowchart TD
+  A[Input: estimates + latency_budget + min_recall] --> B{Any candidate meets both?\nrecall >= min_recall AND latency <= budget}
+
+  B -- Yes --> C[Regime: optimal\nChoose FASTEST among fully-feasible]
+  B -- No --> D{Any candidate meets recall only?\nrecall >= min_recall}
+
+  D -- Yes --> E[Regime: recall_priority\nChoose FASTEST among recall-feasible\nBudget relaxed]
+  D -- No --> F{Any candidate meets latency only?\nlatency <= budget}
+
+  F -- Yes --> G[Regime: latency_priority\nChoose HIGHEST-RECALL within budget\nRecall relaxed]
+  F -- No --> H[Regime: fallback\nChoose HIGHEST-RECALL overall]
+
+  C --> Z[Execute selected index + params]
+  E --> Z
+  G --> Z
+  H --> Z
+
+  Z --> M[Record actual vs predicted latency]
+  M --> N{MAE > threshold?}
+  N -- Yes --> R[Signal recalibration needed]
+  N -- No --> S[Continue online adaptation]
+```
