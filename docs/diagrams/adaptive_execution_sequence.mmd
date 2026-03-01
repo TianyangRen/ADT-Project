@@ -1,0 +1,37 @@
+sequenceDiagram
+    autonumber
+    participant Client as Query Request
+    participant Engine as AdaptiveExecutionEngine
+    participant Analyzer as QueryAnalyzer
+    participant Model as CostModel/AnalyticalModel
+    participant Selector as StrategySelector
+    participant Flat as FlatIndex
+    participant IVF as IVFIndex
+    participant HNSW as HNSWIndex
+    participant Monitor as PerformanceMonitor
+
+    Client->>Engine: search(query, top_k, latency_budget, min_recall, concurrency)
+    Engine->>Analyzer: extract_features(...)
+    Analyzer-->>Engine: QueryFeatures
+
+    Engine->>Model: estimate_all(candidates, QueryFeatures)
+    Model-->>Engine: [CostEstimate(latency, recall)]
+
+    Engine->>Selector: select(estimates, budget, min_recall)
+    Selector-->>Engine: SelectionResult(chosen_strategy, reason, regime)
+
+    alt chosen_strategy.index_name == Flat
+        Engine->>Flat: search(query, top_k)
+        Flat-->>Engine: D, I
+    else chosen_strategy.index_name == IVF
+        Engine->>IVF: search(query, top_k, nprobe)
+        IVF-->>Engine: D, I
+    else chosen_strategy.index_name == HNSW
+        Engine->>HNSW: search(query, top_k, ef_search)
+        HNSW-->>Engine: D, I
+    end
+
+    Engine->>Monitor: record(actual_latency, predicted_latency, strategy)
+    Monitor-->>Engine: updated stats / recalibration signal
+
+    Engine-->>Client: SearchResult(indices, distances, latency, strategy, explanation)
