@@ -104,8 +104,11 @@ class StrategySelector:
         preferring those that also fit the latency budget.
         """
         assert len(estimates) > 0, "No candidate estimates"
+        assert len(estimates) == len(self.candidates), \
+            f"Mismatch: {len(estimates)} estimates vs {len(self.candidates)} candidates"
 
-        pairs = list(zip(self.candidates[:len(estimates)], estimates))
+        # Use efficient zipping without list creation if possible, but here we need to partition
+        pairs = list(zip(self.candidates, estimates))
 
         # --- Partition candidates ---
         recall_ok = []    # meets min_recall
