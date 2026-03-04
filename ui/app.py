@@ -194,7 +194,7 @@ with tabs[0]:
                     "neighbor_id": r.indices.tolist(),
                     "distance": r.distances.tolist(),
                 },
-                use_container_width=True
+                width="stretch"
             )
 
     with col2:
@@ -225,7 +225,7 @@ with tabs[0]:
                     "pred_recall": float(est.estimated_recall),
                 })
             df = pd.DataFrame(rows).sort_values(["pred_latency_ms"])
-            st.dataframe(df, use_container_width=True)
+            st.dataframe(df, width="stretch")
 
             # ---- Save run outputs (disk logging) ----
             save_run = st.checkbox("Save this compare run to results/ui_runs", value=True)
@@ -360,7 +360,7 @@ with tabs[1]:
 
         df = pd.DataFrame(rows).sort_values("latency_ms")
         st.markdown("### Results Table (lower latency is better)")
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width="stretch")
 
         st.markdown("### Adaptive Explanation")
         st.write("**Chosen index:**", rr.strategy_used.index_name)
