@@ -10,7 +10,7 @@ from src.indexes.hnsw_index import HNSWIndex
 
 from src.adaptive.execution_engine import AdaptiveExecutionEngine
 from src.adaptive.strategy_selector import ExecutionStrategy, StrategySelector
-
+from ui.lib.result_logger import RunMeta, log_run
 
 st.set_page_config(page_title="ADT Adaptive Vector Search Demo", layout="wide")
 
@@ -226,6 +226,32 @@ with tabs[0]:
                 })
             df = pd.DataFrame(rows).sort_values(["pred_latency_ms"])
             st.dataframe(df, use_container_width=True)
+
+            # ---- Save run outputs (disk logging) ----
+            save_run = st.checkbox("Save this compare run to results/ui_runs", value=True)
+            if save_run:
+                meta = RunMeta(
+                    run_tag="",
+                    run_type="compare",
+                    dataset=cfg["dataset"]["name"],
+                    config_path=config_path,
+                    query_id=int(qid),
+                    top_k=int(top_k),
+                    latency_budget_ms=float(latency_budget_ms),
+                    min_recall=float(min_recall),
+                    concurrency=int(concurrency),
+                    static_params={
+                        "ivf_nprobe": int(locals().get("ivf_nprobe", 0) or 0),
+                        "hnsw_ef": int(locals().get("hnsw_ef", 0) or 0),
+                    },
+                    adaptive_chosen_index=rr.strategy_used.index_name,
+                    adaptive_params=dict(rr.strategy_used.params),
+                    adaptive_regime=rr.selection_result.regime,
+                    adaptive_reason=rr.selection_result.reason,
+                )
+
+                paths = log_run(out_dir="results/ui_runs", meta=meta, results_df=df)
+                st.success(f"Saved: {paths['csv']} and {paths['json']}")
 
 # -------------------------
 # Tab 2: Benchmark Compare

@@ -48,3 +48,7 @@ IMPLEMENTATION_ROADMAP.md
 prompt.txt
 document.md
 beginner_guide.md
+# UI run artifacts
+results/ui_runs/
+results/summary.csv
+results/summary.md
