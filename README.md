@@ -178,16 +178,16 @@ Strategy selection state diagram:
 
 ```mermaid
 flowchart TD
-  A[Input: estimates + latency_budget + min_recall] --> B{Any candidate meets both?\nrecall >= min_recall AND latency <= budget}
+  A[Input: estimates + latency_budget + min_recall] --> B{Any candidate meets both?<br/>recall >= min_recall AND latency <= budget}
 
-  B -- Yes --> C[Regime: optimal\nChoose FASTEST among fully-feasible]
-  B -- No --> D{Any candidate meets recall only?\nrecall >= min_recall}
+  B -- Yes --> C[Regime: optimal<br/>Choose FASTEST among fully-feasible]
+  B -- No --> D{Any candidate meets recall only?<br/>recall >= min_recall}
 
-  D -- Yes --> E[Regime: recall_priority\nChoose FASTEST among recall-feasible\nBudget relaxed]
-  D -- No --> F{Any candidate meets latency only?\nlatency <= budget}
+  D -- Yes --> E[Regime: recall_priority<br/>Choose FASTEST among recall-feasible<br/>Budget relaxed]
+  D -- No --> F{Any candidate meets latency only?<br/>latency <= budget}
 
-  F -- Yes --> G[Regime: latency_priority\nChoose HIGHEST-RECALL within budget\nRecall relaxed]
-  F -- No --> H[Regime: fallback\nChoose HIGHEST-RECALL overall]
+  F -- Yes --> G[Regime: latency_priority<br/>Choose HIGHEST-RECALL within budget<br/>Recall relaxed]
+  F -- No --> H[Regime: fallback<br/>Choose HIGHEST-RECALL overall]
 
   C --> Z[Execute selected index + params]
   E --> Z
