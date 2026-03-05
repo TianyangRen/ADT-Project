@@ -118,35 +118,73 @@ def run_cli_loop(engine, sample_queries):
             break
 
         elif cmd == "info":
-            print(f"Loaded Strategies: {list(engine.indexes.keys())}")
+            # Safety check if engine initialized correctly
+            keys = list(engine.indexes.keys()) if engine and hasattr(engine, 'indexes') else []
+            print(f"Loaded Strategies: {keys}")
 
         elif cmd == "test":
-            idx = np.random.randint(0, len(sample_queries))
-            q = sample_queries[idx]
-            print(f"Running query #{idx}...")
+            try:
+                idx = np.random.randint(0, len(sample_queries))
+                q = sample_queries[idx]
 
-            start_t = time.time()
-            # Assuming engine.search takes a single vector or batch
-            # Based on typical implementation, passed as (dim,) or (1, dim)
-            result = engine.search(q, top_k=10)
-            elapsed = (time.time() - start_t) * 1000
+                # Ensure 1-D vector for engine.search (it expects (dim,))
+                if q.ndim > 1:
+                    q = q.flatten()
 
-            print(f"    Strategy Selected: {result.strategy_used.name}")
-            print(f"    Parameters: {result.strategy_used.params}")
-            print(f"    Latency (Internal): {result.latency_ms:.4f} ms")
-            print(f"    Wall Clock Time:    {elapsed:.4f} ms")
-            print(f"    Neighbors Found:    {len(result.indices)}")
+                print(f"Running query #{idx}...")
+
+                start_t = time.time()
+                result = engine.search(q, top_k=10)
+                elapsed = (time.time() - start_t) * 1000
+
+                # Fix: Use index_name instead of name
+                strategy_name = "Unknown"
+                if hasattr(result.strategy_used, 'index_name'):
+                    strategy_name = result.strategy_used.index_name
+                elif hasattr(result.strategy_used, 'name'):
+                    strategy_name = result.strategy_used.name
+
+                params = getattr(result.strategy_used, 'params', {})
+
+                print(f"    Strategy Selected: {strategy_name}")
+                print(f"    Parameters: {params}")
+                print(f"    Latency (Internal): {result.latency_ms:.4f} ms")
+                print(f"    Wall Clock Time:    {elapsed:.4f} ms")
+                print(f"    Neighbors Found:    {len(result.indices)}")
+
+            except Exception as e:
+                print(f"(!) Error during test: {e}")
 
         elif cmd == "custom":
-            print("Generating a random query vector for simulation...")
-            dim = sample_queries.shape[1]
-            q = np.random.random((dim,)).astype(np.float32)
+            try:
+                print("Generating a random query vector for simulation...")
+                dim = sample_queries.shape[1]
+                q = np.random.random((dim,)).astype(np.float32)
 
-            result = engine.search(q, top_k=10)
-            print(f"    Strategy Selected: {result.strategy_used.name}")
+                start_t = time.time()
+                result = engine.search(q, top_k=10)
+                elapsed = (time.time() - start_t) * 1000
+
+                # Fix: Use index_name instead of name
+                strategy_name = "Unknown"
+                if hasattr(result.strategy_used, 'index_name'):
+                    strategy_name = result.strategy_used.index_name
+                elif hasattr(result.strategy_used, 'name'):
+                    strategy_name = result.strategy_used.name
+
+                params = getattr(result.strategy_used, 'params', {})
+
+                print(f"    Strategy Selected: {strategy_name}")
+                print(f"    Parameters: {params}")
+                print(f"    Latency (Internal): {result.latency_ms:.4f} ms")
+                print(f"    Wall Clock Time:    {elapsed:.4f} ms")
+                print(f"    Neighbors Found:    {len(result.indices)}")
+            except Exception as e:
+                print(f"(!) Error during custom query: {e}")
 
         else:
-            print("Unknown command.")
+            if cmd:
+                print("Unknown command.")
 
 
 if __name__ == "__main__":
