@@ -1,5 +1,5 @@
 """
-Analytical Cost Functions for ANN indexes.
+Analytical Cost Functions for ANN indexes.1
 
 Provides lightweight, interpretable cost estimates based on
 index-specific complexity analysis. Useful as:
