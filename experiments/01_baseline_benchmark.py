@@ -2,6 +2,7 @@
 """
 Phase 1: Baseline Benchmark
 ============================
+
 Build Flat, IVF, HNSW indexes on the dataset and measure their performance
 under default configurations.
 
