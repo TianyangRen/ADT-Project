@@ -102,8 +102,10 @@ ADT-Project/
 
 ## Architecture Diagrams
 
-Two Mermaid source files are included for report-ready system diagrams:
+Mermaid source files are included for report-ready system diagrams:
 
+- `docs/diagrams/adaptive_search_architecture.mmd`
+  - Figure title: **Adaptive Search System Architecture**
 - `docs/diagrams/adaptive_execution_sequence.mmd`
   - Figure title: **Adaptive Query-Time Execution Sequence Diagram**
 - `docs/diagrams/strategy_selection_state.mmd`
@@ -123,6 +125,7 @@ Option B (CLI):
 
 ```bash
 npm i -g @mermaid-js/mermaid-cli
+mmdc -i docs/diagrams/adaptive_search_architecture.mmd -o docs/diagrams/adaptive_search_architecture.svg
 mmdc -i docs/diagrams/adaptive_execution_sequence.mmd -o docs/diagrams/adaptive_execution_sequence.svg
 mmdc -i docs/diagrams/strategy_selection_state.mmd -o docs/diagrams/strategy_selection_state.svg
 mmdc -i docs/diagrams/offline_online_closed_loop.mmd -o docs/diagrams/offline_online_closed_loop.svg
@@ -137,9 +140,61 @@ Use SVG in reports for best print quality.
 
 The following Mermaid block is rendered directly on GitHub:
 
-Adaptive execution sequence image:
+Adaptive search system architecture diagram:
 
-![Adaptive Query-Time Execution Sequence](docs/diagrams/adaptive_execution_sequence.svg)
+```mermaid
+flowchart TD
+  %% ==================== 主标题 ====================
+  Title["<b>Adaptive Search System Architecture</b>"]
+
+  %% ==================== 1. Search Query ====================
+  Query["<b>🔍 Search Query</b>"]:::client
+
+  %% ==================== 2. Adaptive Execution Engine ====================
+  subgraph Engine ["<b>Adaptive Execution Engine</b>"]
+    Analyzer["Query Analyzer"]:::orchestration
+    Cost["Cost Model / Analytical Model"]:::orchestration
+    Selector["<b>Strategy Selector</b>"]:::selector
+  end
+  EngineNote["Analyzes query and selects best strategy"]:::note
+
+  %% ==================== 3. Search Indexes ====================
+  subgraph Indexes ["<b>Search Indexes</b>"]
+    Flat["<b>Flat Index</b><br>📊"]:::index
+    IVF["<b>IVF Index</b><br>🔗"]:::index
+    HNSW["<b>HNSW Index</b><br>📈"]:::index
+  end
+
+  %% ==================== 4. Performance Monitor ====================
+  Monitor["<b>Performance Monitor</b><br>📈 Records Latency & Recalibrates"]:::monitor
+
+  %% ==================== 流程连线 + 右侧编号 ====================
+  Query -->|"1. Request"| Engine
+  Analyzer --> Cost
+  Cost --> Selector
+  Engine -->|"2. Analyze & Decide"| Indexes
+  Flat --> IVF
+  IVF --> HNSW
+  Indexes -->|"3. Search"| Monitor
+  Monitor -->|"4. Monitor"| Query
+
+  %% ==================== 颜色样式（完全匹配原图） ====================
+  classDef client fill:#E6D7FF,stroke:#6B46C1,stroke-width:3px,rx:25,ry:25
+  classDef orchestration fill:#DBEAFE,stroke:#1E40AF,stroke-width:2px,rx:15,ry:15
+  classDef selector fill:#1E3A8A,color:white,stroke:#1E40AF,stroke-width:3px,rx:15,ry:15
+  classDef index fill:#F3F4F6,stroke:#374151,stroke-width:2px,rx:12,ry:12
+  classDef monitor fill:#D1FAE5,stroke:#10B981,stroke-width:3px,rx:15,ry:15
+  classDef note fill:#F3F4F6,stroke:none,color:#64748B,font-size:12px
+
+  class Query client
+  class Analyzer,Cost orchestration
+  class Selector selector
+  class Flat,IVF,HNSW index
+  class Monitor monitor
+  class EngineNote note
+```
+
+Adaptive execution sequence diagram:
 
 ```mermaid
 sequenceDiagram
