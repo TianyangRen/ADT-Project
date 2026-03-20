@@ -1,21 +1,39 @@
-flowchart TD
-    A[Input: estimates + latency_budget + min_recall] --> B{Any candidate meets both?<br/>recall >= min_recall AND latency <= budget}
-
-    B -- Yes --> C[Regime: optimal<br/>Choose FASTEST among fully-feasible]
-    B -- No --> D{Any candidate meets recall only?<br/>recall >= min_recall}
-
-    D -- Yes --> E[Regime: recall_priority<br/>Choose FASTEST among recall-feasible<br/>Budget relaxed]
-    D -- No --> F{Any candidate meets latency only?<br/>latency <= budget}
-
-    F -- Yes --> G[Regime: latency_priority<br/>Choose HIGHEST-RECALL within budget<br/>Recall relaxed]
-    F -- No --> H[Regime: fallback<br/>Choose HIGHEST-RECALL overall]
-
-    C --> Z[Execute selected index + params]
+---
+config:
+  layout: elk
+---
+flowchart TB
+    A["Input: estimates + latency_budget + min_recall"] --> B{"Any candidate meets both?<br>recall &gt;= min_recall AND latency &lt;= budget"}
+    B -- Yes --> C["Regime: optimal<br>Choose FASTEST among fully-feasible"]
+    B -- No --> D{"Any candidate meets recall only?<br>recall &gt;= min_recall"}
+    D -- Yes --> E["Regime: recall_priority<br>Choose FASTEST among recall-feasible<br>Budget relaxed"]
+    D -- No --> F{"Any candidate meets latency only?<br>latency &lt;= budget"}
+    F -- Yes --> G["Regime: latency_priority<br>Choose HIGHEST-RECALL within budget<br>Recall relaxed"]
+    F -- No --> H["Regime: fallback<br>Choose HIGHEST-RECALL overall"]
+    C --> Z["Execute selected index + params"]
     E --> Z
     G --> Z
     H --> Z
+    Z --> M["Record actual vs predicted latency"]
+    M --> N{"MAE > threshold?"}
+    N -- Yes --> R["Signal recalibration needed"]
+    N -- No --> S["Continue online adaptation"]
 
-    Z --> M[Record actual vs predicted latency]
-    M --> N{MAE > threshold?}
-    N -- Yes --> R[Signal recalibration needed]
-    N -- No --> S[Continue online adaptation]
+     A:::Ash
+     B:::Aqua
+     C:::Aqua
+     D:::Sky
+     E:::Sky
+     F:::Peach
+     G:::Peach
+     H:::Rose
+     Z:::Pine
+     M:::Ash
+     N:::Rose
+    classDef Aqua stroke-width:1px, stroke-dasharray:none, stroke:#46EDC8, fill:#DEFFF8, color:#378E7A
+    classDef Sky stroke-width:1px, stroke-dasharray:none, stroke:#374D7C, fill:#E2EBFF, color:#374D7C
+    classDef Peach stroke-width:1px, stroke-dasharray:none, stroke:#FBB35A, fill:#FFEFDB, color:#8F632D
+    classDef Pine stroke-width:1px, stroke-dasharray:none, stroke:#254336, fill:#27654A, color:#FFFFFF
+    classDef Ash stroke-width:1px, stroke-dasharray:none, stroke:#999999, fill:#EEEEEE, color:#000000
+    classDef Rose stroke-width:1px, stroke-dasharray:none, stroke:#FF5978, fill:#FFDFE5, color:#8E2236
+    style N fill:#00C853,color:#FFFFFF,stroke:#00C853
