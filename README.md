@@ -104,8 +104,6 @@ ADT-Project/
 
 Mermaid source files are included for report-ready system diagrams:
 
-- `docs/diagrams/adaptive_search_architecture.mmd`
-  - Figure title: **Adaptive Search System Architecture**
 - `docs/diagrams/adaptive_execution_sequence.mmd`
   - Figure title: **Adaptive Query-Time Execution Sequence Diagram**
 - `docs/diagrams/strategy_selection_state.mmd`
@@ -141,100 +139,10 @@ Use SVG in reports for best print quality.
 The following Mermaid block is rendered directly on GitHub:
 
 Adaptive search system architecture diagram:
-
-```mermaid
-flowchart TD
-  %% ==================== 主标题 ====================
-  Title["<b>Adaptive Search System Architecture</b>"]
-
-  %% ==================== 1. Search Query ====================
-  Query["<b>🔍 Search Query</b>"]:::client
-
-  %% ==================== 2. Adaptive Execution Engine ====================
-  subgraph Engine ["<b>Adaptive Execution Engine</b>"]
-    Analyzer["Query Analyzer"]:::orchestration
-    Cost["Cost Model / Analytical Model"]:::orchestration
-    Selector["<b>Strategy Selector</b>"]:::selector
-  end
-  EngineNote["Analyzes query and selects best strategy"]:::note
-
-  %% ==================== 3. Search Indexes ====================
-  subgraph Indexes ["<b>Search Indexes</b>"]
-    Flat["<b>Flat Index</b><br>📊"]:::index
-    IVF["<b>IVF Index</b><br>🔗"]:::index
-    HNSW["<b>HNSW Index</b><br>📈"]:::index
-  end
-
-  %% ==================== 4. Performance Monitor ====================
-  Monitor["<b>Performance Monitor</b><br>📈 Records Latency & Recalibrates"]:::monitor
-
-  %% ==================== 流程连线 + 右侧编号 ====================
-  Query -->|"1. Request"| Engine
-  Analyzer --> Cost
-  Cost --> Selector
-  Engine -->|"2. Analyze & Decide"| Indexes
-  Flat --> IVF
-  IVF --> HNSW
-  Indexes -->|"3. Search"| Monitor
-  Monitor -->|"4. Monitor"| Query
-
-  %% ==================== 颜色样式（完全匹配原图） ====================
-  classDef client fill:#E6D7FF,stroke:#6B46C1,stroke-width:3px,rx:25,ry:25
-  classDef orchestration fill:#DBEAFE,stroke:#1E40AF,stroke-width:2px,rx:15,ry:15
-  classDef selector fill:#1E3A8A,color:white,stroke:#1E40AF,stroke-width:3px,rx:15,ry:15
-  classDef index fill:#F3F4F6,stroke:#374151,stroke-width:2px,rx:12,ry:12
-  classDef monitor fill:#D1FAE5,stroke:#10B981,stroke-width:3px,rx:15,ry:15
-  classDef note fill:#F3F4F6,stroke:none,color:#64748B,font-size:12px
-
-  class Query client
-  class Analyzer,Cost orchestration
-  class Selector selector
-  class Flat,IVF,HNSW index
-  class Monitor monitor
-  class EngineNote note
-```
+![Adaptive Search System Architecture](docs/diagrams/adaptive_search_architecture.png)
 
 Adaptive execution sequence diagram:
-
-```mermaid
-sequenceDiagram
-  autonumber
-  participant Client as Query Request
-  participant Engine as AdaptiveExecutionEngine
-  participant Analyzer as QueryAnalyzer
-  participant Model as CostModel/AnalyticalModel
-  participant Selector as StrategySelector
-  participant Flat as FlatIndex
-  participant IVF as IVFIndex
-  participant HNSW as HNSWIndex
-  participant Monitor as PerformanceMonitor
-
-  Client->>Engine: search(query, top_k, latency_budget, min_recall, concurrency)
-  Engine->>Analyzer: extract_features(...)
-  Analyzer-->>Engine: QueryFeatures
-
-  Engine->>Model: estimate_all(candidates, QueryFeatures)
-  Model-->>Engine: [CostEstimate(latency, recall)]
-
-  Engine->>Selector: select(estimates, budget, min_recall)
-  Selector-->>Engine: SelectionResult(chosen_strategy, reason, regime)
-
-  alt chosen_strategy.index_name == Flat
-    Engine->>Flat: search(query, top_k)
-    Flat-->>Engine: D, I
-  else chosen_strategy.index_name == IVF
-    Engine->>IVF: search(query, top_k, nprobe)
-    IVF-->>Engine: D, I
-  else chosen_strategy.index_name == HNSW
-    Engine->>HNSW: search(query, top_k, ef_search)
-    HNSW-->>Engine: D, I
-  end
-
-  Engine->>Monitor: record(actual_latency, predicted_latency, strategy)
-  Monitor-->>Engine: updated stats / recalibration signal
-
-  Engine-->>Client: SearchResult(indices, distances, latency, strategy, explanation)
-```
+![Adaptive Execution Sequence](docs/diagrams/adaptive_execution_sequence.svg)
 
 Strategy selection state diagram:
 
