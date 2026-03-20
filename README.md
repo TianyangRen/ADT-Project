@@ -137,6 +137,10 @@ Use SVG in reports for best print quality.
 
 The following Mermaid block is rendered directly on GitHub:
 
+Adaptive execution sequence image:
+
+![Adaptive Query-Time Execution Sequence](docs/diagrams/adaptive_execution_sequence.svg)
+
 ```mermaid
 sequenceDiagram
   autonumber
